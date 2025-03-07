@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management System</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+        .task-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        input, select, button {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .task-list {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .task-item {
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 5px;
+        }
+        .task-item span {
+            font-size: 14px;
+        }
+        .edit-btn, .delete-btn {
+            background-color: #ffc107;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .edit-btn:hover {
+            background-color: #e0a800;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+        }
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Task Management System</h1>
+        <div class="task-form">
+            <input type="text" id="taskName" placeholder="Task Name">
+            <select id="taskPriority">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+            </select>
+            <button onclick="addTask()">Add Task</button>
+        </div>
+        <div>
+            <label for="filterPriority">Filter by Priority:</label>
+            <select id="filterPriority" onchange="loadTasks()">
+                <option value="all">All</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+            </select>
+        </div>
+        <div class="task-list" id="taskList"></div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", loadTasks);
+
+        function addTask() {
+            const taskName = document.getElementById("taskName").value;
+            const taskPriority = document.getElementById("taskPriority").value;
+
+            if (taskName.trim() === "") {
+                alert("Task name cannot be empty");
+                return;
+            }
+
+            const task = {
+                id: Date.now(),
+                name: taskName,
+                priority: taskPriority
+            };
+
+            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+            tasks.push(task);
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+
+            document.getElementById("taskName").value = "";
+            loadTasks();
+        }
+
+        function loadTasks() {
+            const taskList = document.getElementById("taskList");
+            taskList.innerHTML = "";
+            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+            const filterPriority = document.getElementById("filterPriority").value;
+
+            if (filterPriority !== "all") {
+                tasks = tasks.filter(task => task.priority === filterPriority);
+            }
+
+            tasks.forEach(task => {
+                const taskItem = document.createElement("div");
+                taskItem.classList.add("task-item");
+                taskItem.innerHTML = `
+                    <span>${task.name} (${task.priority})</span>
+                    <button class="edit-btn" onclick="editTask(${task.id})">Edit</button>
+                    <button class="delete-btn" onclick="deleteTask(${task.id})">Delete</button>
+                `;
+                taskList.appendChild(taskItem);
+            });
+        }
+
+        function deleteTask(id) {
+            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+            tasks = tasks.filter(task => task.id !== id);
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+            loadTasks();
+        }
+
+        function editTask(id) {
+            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+            const task = tasks.find(task => task.id === id);
+            if (!task) return;
+
+            const newTaskName = prompt("Edit Task Name:", task.name);
+            if (newTaskName === null || newTaskName.trim() === "") return;
+
+            task.name = newTaskName;
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+            loadTasks();
+        }
+    </script>
+</body>
+</html>
